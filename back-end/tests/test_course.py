@@ -77,6 +77,7 @@ def test_course_get(client, app):
     assert response.json['name'] == name
     assert response.json['instructor'] == instructor
     assert response.json['capacity'] == capacity
+    # TODO test students list
 
 def test_course_update(client, app):
     crn = 1
@@ -104,7 +105,7 @@ def test_course_put(client, app):
 def test_course_delete(client, app):
     crn = 1
 
-    response = client.delete(f'/course/{1}')
+    response = client.delete(f'/course/{crn}')
 
     assert response.status_code == 200
     assert response.json['crn'] == crn

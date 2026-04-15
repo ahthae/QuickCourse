@@ -18,7 +18,7 @@ class Student(db.Model):
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
     name: Mapped[str] = mapped_column()
     username: Mapped[str] = mapped_column(unique=True)
-    password: Mapped[str]
+    passhash: Mapped[str]
     course_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(
         back_populates='student',
         cascade='all, delete-orphan'

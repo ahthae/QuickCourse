@@ -42,7 +42,7 @@ def update_grade(crn, id):
 
     return jsonify({'grade': association.grade})
 
-@bp.get('/')
+@bp.get('/') # TODO make this idempotent
 def course_get():
     courses = db.session.scalars(db.select(Course)).all()
     return jsonify([{
@@ -51,7 +51,7 @@ def course_get():
         'instructor': course.instructor,
         'capacity': course.capacity,
         'students': [{'id': a.student.id, 'grade': a.grade} for a in course.student_associations]
-    } for course in courses]), 200
+    } for course in courses])
 
 @bp.put('/')
 def course_put():

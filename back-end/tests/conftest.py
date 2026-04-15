@@ -24,7 +24,7 @@ def app():
         student = Student(
             id=1,
             username='test',
-            password='testtest',
+            passhash='testtest',
             name='test test'
         )
         db.session.add(course)
