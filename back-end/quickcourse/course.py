@@ -1,11 +1,11 @@
 import json
-from flask import Blueprint, jsonify, request, url_for, make_response
+from flask import Blueprint, jsonify, make_response, request, url_for
 
 from quickcourse.models import Course, db, Student, StudentCourseAssociation
 
 bp = Blueprint('course', __name__, url_prefix='/course')
 
-@bp.route('/<int:crn>/register/<int:id>')
+@bp.route('/<int:crn>/register/<int:id>', methods=['GET', 'POST', 'PUT'])
 def register(crn, id):
     course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
     student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
@@ -15,7 +15,7 @@ def register(crn, id):
 
     return make_response(), 204
 
-@bp.route('/<int:crn>/withdraw/<int:id>')
+@bp.route('/<int:crn>/withdraw/<int:id>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def withdraw(crn, id):
     course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
     student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
