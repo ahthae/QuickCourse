@@ -1,14 +1,13 @@
 import pytest
 import json
-from flask import jsonify
-from quickcourse.models import db, Student, Course
+
+from quickcourse.models import db
 
 def test_student(client, app):
     data = {
-            'id': 8,
-            'username': "test",
-            'password': "testtest",
-            'name': "test test"
+            'username': "newtest",
+            'password': "newtesttest",
+            'name': "New Test"
           }
     response = client.put(f'/student/', json=data)
     assert response.status_code == 200
@@ -18,8 +17,8 @@ def test_student(client, app):
 
     assert response.status_code == 200
     assert response.json['id'] == id and \
-           response.json['username'] == 'test' and \
-           response.json['name'] == 'test test' and \
+           response.json['username'] == data['username'] and \
+           response.json['name'] == data['name'] and \
            not response.json['courses']
     assert 'password' not in response.json
 

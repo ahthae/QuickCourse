@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 
 from quickcourse.models import db, Student
 
@@ -22,7 +22,7 @@ def student_put():
 @bp.route('/<int:id>', methods=['GET', 'POST', 'DELETE'])
 def student(id):
     if request.method == 'GET':
-        student = db.get_or_404(Student, id)
+        student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
 
         return {
             'id': student.id,
@@ -30,9 +30,3 @@ def student(id):
             'name': student.name,
             'courses': [{'crn': a.course.crn, 'grade': a.grade} for a in student.course_associations]
         }
-
-def register_course():
-    pass
-
-def withdraw_course():
-    pass

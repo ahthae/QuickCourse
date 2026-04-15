@@ -8,8 +8,8 @@ from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 db = SQLAlchemy()
 
 class StudentCourseAssociation(db.Model):
-    student_id: Mapped[int] = mapped_column(ForeignKey('student.id'), primary_key=True)
-    course_num: Mapped[int] = mapped_column(ForeignKey('course.crn'), primary_key=True)
+    id: Mapped[int] = mapped_column(ForeignKey('student.id'), primary_key=True)
+    crn: Mapped[int] = mapped_column(ForeignKey('course.crn'), primary_key=True)
     student: Mapped[Student] = db.relationship(back_populates='course_associations')
     course: Mapped[Course] = db.relationship(back_populates='student_associations')
     grade: Mapped[float] = mapped_column(default=0)
@@ -19,7 +19,10 @@ class Student(db.Model):
     name: Mapped[str] = mapped_column()
     username: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]
-    course_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(back_populates='student')
+    course_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(
+        back_populates='student',
+        cascade='all'
+        )
     courses: AssociationProxy[List[Course]] = association_proxy(
         'course_associations',
         'course',
@@ -27,12 +30,15 @@ class Student(db.Model):
         )
 
 class Course(db.Model):
-    crn: Mapped[int] = mapped_column(primary_key=True)
+    crn: Mapped[int] = mapped_column(Identity(), primary_key=True)
     name: Mapped[str] = mapped_column()
     instructor: Mapped[str] = mapped_column()
     # TODO time
     capacity: Mapped[int] = mapped_column()
-    student_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(back_populates='course')
+    student_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(
+        back_populates='course',
+        cascade='all'
+        )
     students: AssociationProxy[List[Student]] = association_proxy(
         'student_associations', 
         'student',

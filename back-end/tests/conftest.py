@@ -2,6 +2,7 @@ import pytest
 import tempfile
 
 from quickcourse import create_app
+from quickcourse.models import Course, db, Student
 
 @pytest.fixture()
 def app():
@@ -9,8 +10,27 @@ def app():
 
     app = create_app({
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///{tmp_path}.sqlite',
+        'SQLALCHEMY_RECORD_QUERIES': True,
         'TESTING': True
         })
+
+    with app.app_context():
+        course = Course(
+            crn=1,
+            name='Test 101',
+            instructor='Test, Test',
+            capacity=80
+        )
+        student = Student(
+            id=1,
+            username='test',
+            password='testtest',
+            name='test test'
+        )
+        student.courses.append(course)
+        db.session.add(course)
+        db.session.add(student)
+        db.session.commit()
 
     yield app
 
