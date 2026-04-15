@@ -38,15 +38,15 @@ def test_withdraw(client, app):
 
 def test_course_get_all(client, app):
     with app.app_context():
-        student = Student(
-            id=2,
-            username='test2',
-            password='testtest2',
-            name='test2 test2'
+        course = Course(
+            name='Test 202',
+            instructor='Test2, Test2',
+            capacity=35
         )
-        db.session.add(student)
+        db.session.add(course)
+        db.session.commit()
 
-    response = client.get('/course')
+    response = client.get('/course/')
 
     assert response.status_code == 200
     assert len(response.json) == 2

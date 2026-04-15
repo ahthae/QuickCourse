@@ -30,9 +30,16 @@ def withdraw(crn, id):
         
     return make_response(), 204
 
-@bp.put('/')
+@bp.get('/')
 def course_get():
-    pass
+    courses = db.session.scalars(db.select(Course)).all()
+    return jsonify([{
+        'crn': course.crn,
+        'name': course.name,
+        'instructor': course.instructor,
+        'capacity': course.capacity,
+        'students': [{'id': a.student.id, 'grade': a.grade} for a in course.student_associations]
+    } for course in courses]), 200
 
 @bp.put('/')
 def course_put():
