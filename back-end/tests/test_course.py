@@ -36,6 +36,21 @@ def test_withdraw(client, app):
         assert len(course.students) == 0
         assert len(student.courses) == 0
 
+def test_update_grade(client, app):
+    grade = 98
+    crn = 1
+    id = 1
+
+    assert client.get(f'/course/{crn}/register/{id}').status_code == 204
+
+    response = client.get(f'/course/{crn}/{id}')
+    assert response.status_code == 200
+    assert response.json['grade'] == 0
+
+    response = client.post(f'/course/{crn}/{id}', json={'grade':grade})
+    assert response.status_code == 200
+    assert response.json['grade'] == grade
+
 def test_course_get_all(client, app):
     with app.app_context():
         course = Course(

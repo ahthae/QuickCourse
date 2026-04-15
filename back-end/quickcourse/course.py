@@ -1,7 +1,7 @@
 import json
 from flask import Blueprint, jsonify, request, url_for, make_response
 
-from quickcourse.models import Course, db, Student
+from quickcourse.models import Course, db, Student, StudentCourseAssociation
 
 bp = Blueprint('course', __name__, url_prefix='/course')
 
@@ -29,6 +29,18 @@ def withdraw(crn, id):
         return jsonify({'message': 'Unable to withdraw from course.'}), 400
         
     return make_response(), 204
+
+@bp.route('/<int:crn>/<int:id>', methods=['GET', 'POST'])
+def update_grade(crn, id):
+    association = db.get_or_404(StudentCourseAssociation, {'id': id, 'crn': crn}, description='Grade record for student {id} in course {crn} not found.')
+    
+    if (request.method == 'POST'):
+        if not 'grade' in request.json: return make_response(), 400
+        grade = request.json['grade']
+        association.grade = grade
+        db.session.commit()
+
+    return jsonify({'grade': association.grade})
 
 @bp.get('/')
 def course_get():
@@ -89,7 +101,3 @@ def course(crn):
         'capacity': course.capacity,
         'students': students
     }
-
-@bp.route('/<int:crn>/<int:id>/<float:grade>')
-def update_grade(crn, id, grade):
-    pass
