@@ -3,8 +3,53 @@ import json
 
 from quickcourse.models import Course, Student, db
 
+def test_register(client, app):
+    crn = 1
+    id = 1
+
+    assert client.get(f'/course/{crn}/register/{id}').status_code == 204
+
+    with app.app_context():
+        course = db.session.get_one(Course, 1)
+        student = db.session.get_one(Student, 1)
+        assert len(course.students) == 1
+        assert len(student.courses) == 1
+        assert course.students[0].id == student.id
+        assert student.courses[0].crn == course.crn
+
+def test_withdraw(client, app):
+    crn = 1
+    id = 1
+
+    # Withdraw from a course we're not registered for
+    assert client.get(f'/course/{crn}/withdraw/{id}').status_code == 400
+
+    # Withdraw from a course we are register for
+    assert client.get(f'/course/{crn}/register/{id}').status_code == 204
+    assert client.get(f'/course/{crn}/withdraw/{id}').status_code == 204
+
+    with app.app_context():
+        course = db.session.get_one(Course, 1)
+        student = db.session.get_one(Student, 1)
+        assert course is not None
+        assert student is not None
+        assert len(course.students) == 0
+        assert len(student.courses) == 0
+
 def test_course_get_all(client, app):
-    pass
+    with app.app_context():
+        student = Student(
+            id=2,
+            username='test2',
+            password='testtest2',
+            name='test2 test2'
+        )
+        db.session.add(student)
+
+    response = client.get('/course')
+
+    assert response.status_code == 200
+    assert len(response.json) == 2
 
 def test_course_get(client, app):
     crn = 1
@@ -49,5 +94,5 @@ def test_course_delete(client, app):
     assert response.status_code == 200
     assert response.json['crn'] == crn
     with app.app_context():
-        assert db.session.get(Course, crn) == None
-        assert db.session.get_one(Student, 1) != None
+        assert db.session.get(Course, crn) is None
+        assert db.session.get_one(Student, 1) is not None

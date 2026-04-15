@@ -21,7 +21,7 @@ class Student(db.Model):
     password: Mapped[str]
     course_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(
         back_populates='student',
-        cascade='all'
+        cascade='all, delete-orphan'
         )
     courses: AssociationProxy[List[Course]] = association_proxy(
         'course_associations',
@@ -37,7 +37,7 @@ class Course(db.Model):
     capacity: Mapped[int] = mapped_column()
     student_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(
         back_populates='course',
-        cascade='all'
+        cascade='all, delete-orphan'
         )
     students: AssociationProxy[List[Student]] = association_proxy(
         'student_associations', 

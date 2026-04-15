@@ -27,7 +27,6 @@ def app():
             password='testtest',
             name='test test'
         )
-        student.courses.append(course)
         db.session.add(course)
         db.session.add(student)
         db.session.commit()

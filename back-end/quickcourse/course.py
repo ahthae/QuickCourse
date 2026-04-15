@@ -1,16 +1,37 @@
 import json
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, url_for, make_response
 
-from quickcourse.models import db, Course
+from quickcourse.models import Course, db, Student
 
 bp = Blueprint('course', __name__, url_prefix='/course')
 
-@bp.route('/<int:crn>/<int:id>')
+@bp.route('/<int:crn>/register/<int:id>')
 def register(crn, id):
-    pass
+    course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
+    student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
 
-@bp.route('/<int:crn>/<int:id>')
+    course.students.append(student)
+    db.session.commit()
+
+    return make_response(), 204
+
+@bp.route('/<int:crn>/withdraw/<int:id>')
 def withdraw(crn, id):
+    course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
+    student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
+
+    try:
+        course.students.remove(student)
+        db.session.commit()
+    except ValueError:
+        return jsonify({'message': 'Student not enrolled in course'}), 400
+    except:
+        return jsonify({'message': 'Unable to withdraw from course.'}), 400
+        
+    return make_response(), 204
+
+@bp.put('/')
+def course_get():
     pass
 
 @bp.put('/')
@@ -26,7 +47,8 @@ def course_put():
     db.session.add(course)
     db.session.commit()
 
-    return jsonify(course.crn)
+    response = jsonify(course.crn)
+    return response, 200, { 'Location': url_for('course.course', crn=course.crn) }
 
 @bp.route('/<int:crn>', methods=['GET', 'POST', 'DELETE'])
 def course(crn):
