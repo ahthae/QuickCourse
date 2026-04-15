@@ -9,7 +9,7 @@ db = SQLAlchemy()
 
 class StudentCourseAssociation(db.Model):
     student_id: Mapped[int] = mapped_column(ForeignKey('student.id'), primary_key=True)
-    course_num: Mapped[int] = mapped_column(ForeignKey('course.num'), primary_key=True)
+    course_num: Mapped[int] = mapped_column(ForeignKey('course.crn'), primary_key=True)
     student: Mapped[Student] = db.relationship(back_populates='course_associations')
     course: Mapped[Course] = db.relationship(back_populates='student_associations')
     grade: Mapped[float] = mapped_column(default=0)
@@ -18,7 +18,7 @@ class Student(db.Model):
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
     name: Mapped[str] = mapped_column()
     username: Mapped[str] = mapped_column(unique=True)
-    # TODO password
+    password: Mapped[str]
     course_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(back_populates='student')
     courses: AssociationProxy[List[Course]] = association_proxy(
         'course_associations',
@@ -27,7 +27,7 @@ class Student(db.Model):
         )
 
 class Course(db.Model):
-    num: Mapped[int] = mapped_column(primary_key=True)
+    crn: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column()
     instructor: Mapped[str] = mapped_column()
     # TODO time
