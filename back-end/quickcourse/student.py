@@ -1,36 +1,47 @@
-from flask import Blueprint, current_app, jsonify, redirect, request, url_for
+from flask import Blueprint, current_app, jsonify, make_response, redirect, request, url_for
 
-from quickcourse.models import db, Student
+from quickcourse.models import Course, db, Student, StudentCourseAssociation
+from quickcourse.auth import hash_password
 
 bp = Blueprint('student', __name__, url_prefix='/student')
 
 @bp.get('/')
 def student_get_all():
     students = db.session.scalars(db.select(Student)).all()
-
-    return jsonify([{
-        'id': student.id,
-        'name': student.name,
-        'username': student.username,
-        'passhash': student.passhash,
-        'courses': [{'crn': a.course.crn, 'id': a.grade} for a in student.courses]
-    } for student in students])
+    return jsonify([student.to_dict() for student in students])
 
 @bp.put('/')
 def student_put():
     data = request.get_json()
 
-    student = Student(
-        username=data['username'],
-        passhash=data['passhash'],
-        name=data['name'],
-    )
+    try:
+        student = Student(
+            id=data['id'],
+            username=data['username'],
+            passhash=hash_password(data['password']),
+            name=data['name']
+        )
+    except KeyError:
+        return jsonify({'message':'Missing required data.'}), 400
+
+    if 'courses' in data:
+        for grade in data['courses']:
+            course = db.session.get(Course, grade['crn'])
+            if course is None:
+                return jsonify({'message':f'Could not find course {grade['crn']}.'}), 400
+            else:
+                student.course_associations.append(StudentCourseAssociation(
+                    id=student.id,
+                    crn=course.crn,
+                    student=student,
+                    course=course,
+                    grade=grade['grade'] if 'grade' in grade else None
+                ))
 
     db.session.add(student)
     db.session.commit()
 
-    response = jsonify(student.id) # TODO return student object?
-    return response, 200, { 'Location': url_for('student.student', id=student.id) }
+    return jsonify(student.to_dict()), 201, { 'Location': url_for('student.student', id=student.id) }
 
 @bp.route('/<string:username>', methods=['GET', 'POST', 'DELETE'])
 def student_username(username):
@@ -41,22 +52,18 @@ def student_username(username):
 def student(id):
     student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
 
-    courses = [{'crn': a.course.crn, 'grade': a.grade} for a in student.course_associations]
-
     if (request.method == 'DELETE'):
         db.session.delete(student)
         db.session.commit()
-    elif (request.method == 'POST'):
+        return make_response(), 204
+        
+
+    if (request.method == 'POST'):
         data = request.json
         if 'id' in data: student.id = data['id']
         if 'name' in data: student.name = data['name']
         if 'username' in data: student.username = data['username']
-        if 'passhash' in data: student.password = data['passhash'] # TODO
+        if 'password' in data: student.passhash = hash_password(data['password'])
         db.session.commit()
 
-    return {
-        'id': student.id,
-        'username': student.username,
-        'name': student.name,
-        'courses': courses
-    }
+    return student.to_dict()

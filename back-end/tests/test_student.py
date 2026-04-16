@@ -2,6 +2,7 @@ import pytest
 import json
 
 from quickcourse.models import Course, db, Student
+from quickcourse.auth import check_password, hash_password
 
 def test_student_get_all(client, app):
     student = Student(
@@ -32,22 +33,30 @@ def test_student_get(client, app):
     assert response.json['username'] == username
     assert response.json['name'] == name
     assert 'passhash' not in response.json
+    assert len(response.json['courses']) == 1
 
 def test_student_put(client, app):
     data = {
+        'id':2,
         'username':'newtest',
-        'passhash':'newtesttest',
-        'name':'New Test'
+        'password':'newtesttest',
+        'name':'New Test',
+        'courses': [
+            {'crn': 1, 'grade': 91.2}
+        ]
     }
     response = client.put(f'/student/', json=data)
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     with app.app_context():
-        student = db.session.get(Student, response.json)
+        student = db.session.get(Student, response.json['id'])
         assert student is not None
         assert student.username == data['username']
         assert student.name == data['name']
-        assert student.passhash == data['passhash']
+        assert check_password(student.passhash, data['password'])
+        assert len(student.courses) == 1
+        assert student.courses[0].crn == 1
+        assert student.course_associations[0].grade == 91.2
 
 def test_student_update(client, app):
     id = 1
@@ -57,13 +66,11 @@ def test_student_update(client, app):
     assert response.status_code == 200
     assert response.json['username'] == 'updated'
 
-def test_course_delete(client, app):
+def test_student_delete(client, app):
     id = 1
 
-    response = client.delete(f'/student/{id}')
+    assert client.delete(f'/student/{id}').status_code == 204
 
-    assert response.status_code == 200
-    assert response.json['id'] == id
     with app.app_context():
         assert db.session.get(Student, id) is None
         assert db.session.get_one(Course, 1) is not None

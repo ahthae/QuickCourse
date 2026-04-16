@@ -13,7 +13,7 @@ def register(crn, id):
     course.students.append(student)
     db.session.commit()
 
-    return make_response(), 204
+    return jsonify({f'message':'Successfully registered for {crn}.'}), 200
 
 @bp.route('/<int:crn>/withdraw/<int:id>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def withdraw(crn, id):
@@ -28,7 +28,7 @@ def withdraw(crn, id):
     except:
         return jsonify({'message': 'Unable to withdraw from course.'}), 400
         
-    return make_response(), 204
+    return jsonify({f'message':'Successfully withdrawn from {crn}.'}), 200
 
 @bp.route('/<int:crn>/<int:id>', methods=['GET', 'POST'])
 def update_grade(crn, id):
@@ -42,45 +42,55 @@ def update_grade(crn, id):
 
     return jsonify({'grade': association.grade})
 
-@bp.get('/') # TODO make this idempotent
+@bp.get('/')
 def course_get():
     courses = db.session.scalars(db.select(Course)).all()
-    return jsonify([{
-        'crn': course.crn,
-        'name': course.name,
-        'instructor': course.instructor,
-        'capacity': course.capacity,
-        'students': [{'id': a.student.id, 'grade': a.grade} for a in course.student_associations]
-    } for course in courses])
+    return jsonify([course.to_dict() for course in courses])
 
 @bp.put('/')
 def course_put():
     data = request.get_json()
 
-    course = Course(
-        name=data['name'],
-        instructor=data['instructor'],
-        capacity=data['capacity']
-    )
+    try:
+        course = Course(
+            crn=data['crn'],
+            name=data['name'],
+            instructor=data['instructor'],
+            capacity=data['capacity']
+        )
+    except KeyError:
+        return jsonify({'message':'Missing required data.'}), 400
+
+    if 'students' in data:
+        for grade in data['students']:
+            student = db.session.get(Student, grade['id'])
+            if student is None:
+                return jsonify({'message':f'Could not find student {grade['id']}.'}), 400
+            else:
+                course.student_associations.append(StudentCourseAssociation(
+                    id=student.id,
+                    crn=course.crn,
+                    student=student,
+                    course=course,
+                    grade=grade['grade'] if 'grade' in grade else None
+                ))
 
     db.session.add(course)
     db.session.commit()
 
-    response = jsonify(course.crn)
-    return response, 200, { 'Location': url_for('course.course', crn=course.crn) }
+    return jsonify(course.to_dict()), 201, { 'Location': url_for('course.course', crn=course.crn) }
 
 @bp.route('/<int:crn>', methods=['GET', 'POST', 'DELETE'])
 def course(crn):
     message_404 = f'Course with CRN {crn} not found.'
     course = db.get_or_404(Course, crn, description=message_404)
 
-    # save students before possibly deleting the associations
-    students = [{'id': a.student.id, 'grade': a.grade} for a in course.student_associations]
-
     if request.method == 'DELETE':
         db.session.delete(course)
         db.session.commit()
-    elif request.method == 'POST':
+        return make_response(), 204
+
+    if request.method == 'POST':
         data = request.json
 
         if 'crn' in data: course.crn = data['crn']
@@ -94,10 +104,4 @@ def course(crn):
         # could be better to enforce validation by making client use register/withdraw enpoints
         # note: PUT also doesn't handle students
 
-    return {
-        'crn': course.crn,
-        'name': course.name,
-        'instructor': course.instructor,
-        'capacity': course.capacity,
-        'students': students
-    }
+    return course.to_dict()

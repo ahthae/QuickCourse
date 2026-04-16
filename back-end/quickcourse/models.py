@@ -29,6 +29,14 @@ class Student(db.Model):
         creator=lambda course_obj: StudentCourseAssociation(course=course_obj)
         )
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'username': self.username,
+            'courses': [{'crn': a.course.crn, 'grade': a.grade} for a in self.course_associations]
+        }
+
 class Course(db.Model):
     crn: Mapped[int] = mapped_column(Identity(), primary_key=True)
     name: Mapped[str] = mapped_column()
@@ -44,3 +52,12 @@ class Course(db.Model):
         'student',
         creator=lambda student_obj: StudentCourseAssociation(student=student_obj)
         )
+    
+    def to_dict(self):
+        return {
+            'crn': self.crn,
+            'name': self.name,
+            'instructor': self.instructor,
+            'capacity': self.capacity,
+            'students': [{'id': a.student.id, 'grade': a.grade} for a in self.student_associations]
+        }

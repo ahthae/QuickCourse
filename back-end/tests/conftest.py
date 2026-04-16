@@ -24,14 +24,23 @@ def app():
             instructor='Test, Test',
             capacity=80
         )
+        course2 = Course(
+            crn=2,
+            name='Test 202',
+            instructor='Test2, Test2',
+            capacity=35
+        )
         student = Student(
             id=1,
             username='test',
             passhash='testtest',
             name='test test'
         )
+        student.courses.append(course2)
         db.session.add(course)
+        db.session.add(course2)
         db.session.add(student)
+
         db.session.commit()
 
     yield app
