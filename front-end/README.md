@@ -71,3 +71,9 @@ export default defineConfig([
   },
 ])
 ```
+Setup stuff
+Starting vite server:
+Check dependencies and install if needed.
+>npm install 
+Start Vite server and open app in browser (shown under local:)
+>npm run dev
