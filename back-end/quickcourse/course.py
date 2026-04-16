@@ -100,8 +100,4 @@ def course(crn):
 
         db.session.commit()
 
-        # TODO update student list maybe?
-        # could be better to enforce validation by making client use register/withdraw enpoints
-        # note: PUT also doesn't handle students
-
     return course.to_dict()
