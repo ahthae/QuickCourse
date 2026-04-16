@@ -1,11 +1,11 @@
-from flask import Blueprint, current_app, jsonify, request, url_for
+from flask import Blueprint, current_app, jsonify, redirect, request, url_for
 
 from quickcourse.models import db, Student
 
 bp = Blueprint('student', __name__, url_prefix='/student')
 
 @bp.get('/')
-def student_get():
+def student_get_all():
     students = db.session.scalars(db.select(Student)).all()
 
     return jsonify([{
@@ -29,8 +29,13 @@ def student_put():
     db.session.add(student)
     db.session.commit()
 
-    response = jsonify(student.id)
+    response = jsonify(student.id) # TODO return student object?
     return response, 200, { 'Location': url_for('student.student', id=student.id) }
+
+@bp.route('/<string:username>', methods=['GET', 'POST', 'DELETE'])
+def student_username(username):
+    id = db.one_or_404(db.select(Student.id).where(Student.username == username))
+    return redirect(url_for('student.student', id=id))
 
 @bp.route('/<int:id>', methods=['GET', 'POST', 'DELETE'])
 def student(id):

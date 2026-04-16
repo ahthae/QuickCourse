@@ -9,9 +9,12 @@ def app():
     tmp_fd, tmp_path = tempfile.mkstemp()
 
     app = create_app({
+        'SECRET_KEY': 'secretkeysecretkeysecretkeysecretkey',
+        'PEPPER': 'pepper',
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///{tmp_path}.sqlite',
         'SQLALCHEMY_RECORD_QUERIES': True,
-        'TESTING': True
+        'TESTING': True,
+        'JWT_TOKEN_LOCATION': ['cookies']
         })
 
     with app.app_context():
