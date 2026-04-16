@@ -14,7 +14,7 @@ def login():
     password = request.json['password']
 
     student = db.session.scalar(db.select(Student).where(Student.username == username))
-    if not student or not argon2.check_password_hash(student.passhash, pepper_password(password)):
+    if not student or not check_password(student.passhash, password):
         return jsonify({'message':'Invalid credentials.'}), 401
 
     response = jsonify({'message':'Login successful.'})
@@ -52,10 +52,12 @@ def jwt_identity_cb(student):
 def jwt_lookup_cb(jwt_header, jwt_data):
     id = int(jwt_data['sub'])
     return db.session.get(Student, id)
-    
 
 def pepper_password(password):
     return password+current_app.config['PEPPER']
 
 def hash_password(password):
     return argon2.generate_password_hash(pepper_password(password))
+
+def check_password(passhash, password):
+    return argon2.check_password_hash(passhash, pepper_password(password))

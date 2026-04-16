@@ -50,3 +50,7 @@ def test_login(client, app):
     response = client.post('/login', json=data)
     assert response.status_code == 200
     assert client.get_cookie('access_token_cookie') is not None
+
+def test_auth(client, app):
+    pass
+    
