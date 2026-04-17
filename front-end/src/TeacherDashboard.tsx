@@ -14,13 +14,16 @@ export default function TeacherDashboard({baseUrl}) {
       <div style={{textAlign: "center" }}>
         <h1>Hello, {user.username}. Your Courses</h1>
         <table>
+          <thead>
             <tr>
               <th>Course Name</th>
               <th>Teacher</th>
               <th>Time</th>
               <th>Course Capacity</th>
             </tr>
-            <tr></tr>
+          </thead>
+          <tbody id="gradeTable">
+          </tbody>
         </table>
       </div>
       <section id='footer'>

@@ -43,8 +43,9 @@ function LoginPage() {
     }
   }
 
-  function renderTable(data) {
-    const table = document.getElementById("gradesTable");
+  // Table renderer used for students. Displays course name, instructor, time, capacity.
+  function renderStudentTable(data) {
+    const table = document.getElementById("courseTable");
     table.innerHTML = "";
   
     data.courses.forEach((course) => {
@@ -66,6 +67,30 @@ function LoginPage() {
       row.appendChild(teacherCell);
       row.appendChild(timeCell);
       row.appendChild(capacityCell);
+  
+      table.appendChild(row);
+    });
+  }
+
+  // Table renderer used for teachers to see grades. Only appears when a teacher selects a specific course.
+  // Displays student name and their grade in the course.
+  // UNFINISHED. Remember, course => students has the following format: {"id": #, "grade": ##}
+  function renderGradeTable(data) {
+    const table = document.getElementById("gradeTable");
+    table.innerHTML = "";
+  
+    data.courses.forEach((course) => {
+      const row = document.createElement("tr");
+  
+      const studentCell = document.createElement("td");
+      studentCell.textContent = course.id;
+  
+      const gradeCell = document.createElement("td");
+      gradeCell.textContent = course.grade;
+
+  
+      row.appendChild(studentCell);
+      row.appendChild(gradeCell);
   
       table.appendChild(row);
     });
@@ -137,7 +162,7 @@ function StudentDashboard() {
               <th>Course Capacity</th>
             </tr>
           </thead>
-          <tbody id="gradesTable">
+          <tbody id="courseTable">
           </tbody>
         </table>
       </div>
