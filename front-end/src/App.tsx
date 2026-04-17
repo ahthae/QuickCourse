@@ -32,6 +32,34 @@ function LoginPage() {
     }
   }
 
+  function renderTable(data) {
+    const table = document.getElementById("gradesTable");
+    table.innerHTML = "";
+  
+    data.courses.forEach((course) => {
+      const row = document.createElement("tr");
+  
+      const courseCell = document.createElement("td");
+      courseCell.textContent = course.name;
+  
+      const teacherCell = document.createElement("td");
+      teacherCell.textContent = course.instructor;
+  
+      const timeCell = document.createElement("td");
+      timeCell.textContent = course.time || "N/A";
+  
+      const capacityCell = document.createElement("td");
+      capacityCell.textContent = course.capacity.toString();
+  
+      row.appendChild(courseCell);
+      row.appendChild(teacherCell);
+      row.appendChild(timeCell);
+      row.appendChild(capacityCell);
+  
+      table.appendChild(row);
+    });
+  }
+
   return (
     <>
       <section id="center">
@@ -82,17 +110,21 @@ function StudentDashboard() {
            Sign Out. Takes you back to Login
         </button>
       </div>
-      <div style={{textAlign: "center" }}>
+      <div style={{padding: '40px', textAlign: "center" }}>
         <h1>Your Courses</h1>
         <table>
+          <thead>
             <tr>
               <th>Course Name</th>
               <th>Teacher</th>
               <th>Time</th>
               <th>Course Capacity</th>
             </tr>
-            <tr></tr>
+          </thead>
+          <tbody id="gradesTable">
+          </tbody>
         </table>
+        
       </div>
       <section id='footer'>
         <div style={{display: 'flex', justifyContent: 'flex-end', padding: '40px'}}>
