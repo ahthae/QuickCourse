@@ -6,6 +6,39 @@ from quickcourse.models import Course, db, Student, StudentCourseAssociation
 
 bp = Blueprint('course', __name__, url_prefix='/course')
 
+@bp.route('/<int:crn>/register', methods=['POST'])
+@jwt_required()
+def register_current_user(crn):
+    course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
+
+    if len(course.students) >= course.capacity:
+        return jsonify({'message': 'Failed to register: course at capacity.'}), 400
+
+    if current_user not in course.students:
+        course.students.append(current_user)
+        db.session.commit()
+
+    return jsonify({f'message':'Successfully registered for {crn}.'}), 200
+
+@bp.route('/<int:crn>/withdraw', methods=['POST'])
+@jwt_required()
+def withdraw_current_user(crn):
+    course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
+    student = current_user
+
+    if not student in course.students:
+        return jsonify({'message': 'Failed to withdraw: not registered for course'}), 400
+
+    try:
+        course.students.remove(student)
+        db.session.commit()
+    except ValueError:
+        return jsonify({'message': 'Student not enrolled in course'}), 400
+    except:
+        return jsonify({'message': 'Unable to withdraw from course.'}), 400
+        
+    return jsonify({f'message':'Successfully withdrawn from {crn}.'}), 200
+    
 @bp.route('/<int:crn>/register/<int:id>', methods=['GET', 'POST', 'PUT'])
 @jwt_required()
 def register(crn, id):
@@ -46,6 +79,8 @@ def update_grade(crn, id):
     if (current_user.role == 0): return make_response(), 403
     
     association = db.get_or_404(StudentCourseAssociation, {'id': id, 'crn': crn}, description='Grade record for student {id} in course {crn} not found.')
+    if association.course.instructor_id != current_user.id:
+        return jsonify({'message': 'Only the instructor of this course may modify grades.'}), 400
     
     if (request.method == 'POST'):
         if not 'grade' in request.json: return make_response(), 400
