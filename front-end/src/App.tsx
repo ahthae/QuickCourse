@@ -124,7 +124,6 @@ function StudentDashboard() {
           <tbody id="gradesTable">
           </tbody>
         </table>
-        
       </div>
       <section id='footer'>
         <div style={{display: 'flex', justifyContent: 'flex-end', padding: '40px'}}>
@@ -173,18 +172,6 @@ function TeacherDashboard() {
   )
 }
 
-function AdminDashboard() {
-  const navigate = useNavigate()
-  return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>View All Courses</h1>
-      <p></p>
-      <button onClick={() => navigate('/')}>
-        Sign Out. Takes you back to Login
-      </button>
-    </div>
-  )
-}
 
 function App() {
   return (
@@ -194,7 +181,6 @@ function App() {
         <Route path="/studentdashboard" element={<StudentDashboard />} />
         <Route path="/studentaddcourses" element={<StudentAddCourses />} />
         <Route path="/teacherdashboard" element={<TeacherDashboard />} />
-        <Route path="/admindashboard" element={<AdminDashboard />} />
       </Routes>
     </Router>
   )
