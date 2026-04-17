@@ -15,8 +15,10 @@ function App() {
     const response = await fetch(base_url+'/login', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({"username": username, "password": password})
+      body: JSON.stringify({"username": username, "password": password}),
+      credentials: 'include'
     });
+
 
     if (response.ok) {
       console.log("logged in as " + username);
