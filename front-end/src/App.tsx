@@ -1,27 +1,34 @@
-import { useState } from 'react'
+import { use, useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, useNavigate, useNavigation } from 'react-router-dom'
 import logo from './assets/quickcourselogo.png'
 import './App.css'
 
 const base_url = "http://localhost:5000";
 
-function App() {
+function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const navigate = useNavigate()
 
   const handleLogin = async () => {
-    console.log("Username:", username)
-    console.log("Password:", password)
-
-    const response = await fetch(base_url+'/login', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({"username": username, "password": password}),
-      credentials: 'include'
-    });
-
-
-    if (response.ok) {
-      console.log("logged in as " + username);
+    try {
+      const response = await fetch(base_url + '/login', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log("Logged in:", data);
+        navigate('/dashboard')
+      } else {
+        console.log("Error:", data);
+      }
+    } catch (err) {
+      console.error("Request failed:", err);
     }
   }
 
@@ -56,11 +63,65 @@ function App() {
       </section>
 
       <div className="ticks"></div>
-
+      <button onClick={() => navigate('/studentdashboard')}>
+        Goes to Dashboard. You will access this via sign in when thats functional
+      </button>
 
       <div className="ticks"></div>
       <section id="spacer"></section>
     </>
+  )
+}
+
+function StudentDashboard() {
+  const navigate = useNavigate()
+  return (
+    <div style={{ padding: "40px", textAlign: "center" }}>
+      <h1>Your Courses</h1>
+      <p></p>
+      <button onClick={() => navigate('/')}>
+        Sign Out. Takes you back to Login
+      </button>
+    </div>
+  )
+}
+
+function TeacherDashboard() {
+  const navigate = useNavigate()
+  return (
+    <div style={{ padding: "40px", textAlign: "center" }}>
+      <h1>Your Courses</h1>
+      <p></p>
+      <button onClick={() => navigate('/')}>
+        Sign Out. Takes you back to Login
+      </button>
+    </div>
+  )
+}
+
+function AdminDashboard() {
+  const navigate = useNavigate()
+  return (
+    <div style={{ padding: "40px", textAlign: "center" }}>
+      <h1>View All Courses</h1>
+      <p></p>
+      <button onClick={() => navigate('/')}>
+        Sign Out. Takes you back to Login
+      </button>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/studentdashboard" element={<StudentDashboard />} />
+        <Route path="/teacherdashboard" element={<TeacherDashboard />} />
+        <Route path="/admindashboard" element={<AdminDashboard />} />
+      </Routes>
+    </Router>
   )
 }
 
