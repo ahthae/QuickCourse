@@ -23,8 +23,11 @@ def login():
     return response
 
 @bp.post('/logout')
+@jwt_required
 def logout():
-    pass
+    response = jsonify({'message':'Logout successful.'})
+    unset_jwt_cookies(response)
+    return response
 
 @bp.post('/register')
 def register():

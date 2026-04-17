@@ -1,4 +1,5 @@
 from flask import Blueprint, current_app, jsonify, make_response, redirect, request, url_for
+from flask_jwt_extended import current_user, jwt_required
 
 from quickcourse.models import Course, db, Student, StudentCourseAssociation
 from quickcourse.auth import hash_password
@@ -6,13 +7,20 @@ from quickcourse.auth import hash_password
 bp = Blueprint('student', __name__, url_prefix='/student')
 
 @bp.get('/')
+@jwt_required()
 def student_get_all():
+    if current_user.role == 0:
+        return make_response(), 403
     students = db.session.scalars(db.select(Student)).all()
     return jsonify([student.to_dict() for student in students])
 
 @bp.put('/')
+@jwt_required()
 def student_put():
     data = request.get_json()
+
+    if current_user.role == 0:
+        return jsonify({'message':'Unauthorized method.'}), 403
 
     try:
         student = Student(
@@ -49,6 +57,7 @@ def student_username(username):
     return redirect(url_for('student.student', id=id))
 
 @bp.route('/<int:id>', methods=['GET', 'POST', 'DELETE'])
+@jwt_required(optional=True)
 def student(id):
     student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
 
@@ -66,4 +75,9 @@ def student(id):
         if 'password' in data: student.passhash = hash_password(data['password'])
         db.session.commit()
 
-    return student.to_dict()
+    data = student.to_dict()
+
+    if current_user and current_user.role == 0 and current_user.id != id:
+        del data['courses']
+
+    return data

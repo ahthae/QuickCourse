@@ -7,23 +7,28 @@ from quickcourse.models import Course, db, Student, StudentCourseAssociation
 bp = Blueprint('course', __name__, url_prefix='/course')
 
 @bp.route('/<int:crn>/register/<int:id>', methods=['GET', 'POST', 'PUT'])
-
+@jwt_required()
 def register(crn, id):
     course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
     student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
 
-    if (len(course.students) >= course.capacity):
+    if (current_user.role == 0 and len(course.students) >= course.capacity):
         return jsonify({'message': 'Failed to register: course at capacity.'}), 400
 
-    course.students.append(student)
-    db.session.commit()
+    if student not in course.students:
+        course.students.append(student)
+        db.session.commit()
 
     return jsonify({f'message':'Successfully registered for {crn}.'}), 200
 
 @bp.route('/<int:crn>/withdraw/<int:id>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@jwt_required()
 def withdraw(crn, id):
     course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
     student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
+
+    if current_user.role == 0 and not student in course.students:
+        return jsonify({'message': 'Failed to withdraw: not registered for course'}), 400
 
     try:
         course.students.remove(student)
@@ -51,7 +56,11 @@ def update_grade(crn, id):
     return jsonify({'grade': association.grade})
 
 @bp.put('/')
+@jwt_required()
 def course_put():
+    if current_user.role == 0:
+        return jsonify({'message':'Unauthorized method.'}), 403
+
     data = request.get_json()
 
     try:
@@ -91,7 +100,7 @@ def course_put():
 
 @bp.get('/')
 @jwt_required(optional=True)
-def course_get():
+def course_get_all():
     courses = db.session.scalars(db.select(Course)).all()
     data = [course.to_dict() for course in courses]
     if not current_user or current_user.role < 1:

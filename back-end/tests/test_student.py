@@ -14,6 +14,7 @@ def test_student_get_all(client, app):
         db.session.add(student)
         db.session.commit()
     
+    assert client.post('/login', json={'username':'teach', 'password':'teachteach'}).status_code == 200
     response = client.get('/student/')
     assert response.status_code == 200
  
@@ -23,7 +24,6 @@ def test_student_get_all(client, app):
 def test_student_get(client, app):
     id = 1
     username='test'
-    passhash='testtest'
     name='test test'
  
     response = client.get(f'/student/{id}')
@@ -45,6 +45,7 @@ def test_student_put(client, app):
             {'crn': 1, 'grade': 91.2}
         ]
     }
+    assert client.post('/login', json={'username':'teach', 'password':'teachteach'}).status_code == 200
     response = client.put(f'/student/', json=data)
     assert response.status_code == 201
 

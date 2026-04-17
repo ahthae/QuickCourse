@@ -7,6 +7,9 @@ def test_register(client, app):
     crn = 1
     id = 1
 
+    assert client.get(f'/course/{crn}/register/{id}').status_code == 401
+
+    assert client.post ('/login', json={'username':'teach','password':'teachteach'}).status_code == 200
     assert client.get(f'/course/{crn}/register/{id}').status_code == 200
 
     with app.app_context():
@@ -18,23 +21,22 @@ def test_register(client, app):
         assert student.courses[0].crn == course.crn
 
 def test_withdraw(client, app):
-    crn = 1
+    crn = 2
+    unregistered_crn = 1
     id = 1
 
     # Withdraw from a course we're not registered for
-    assert client.get(f'/course/{crn}/withdraw/{id}').status_code == 400
+    assert client.post ('/login', json={'username':'test','password':'testtest'}).status_code == 200
+    assert client.get(f'/course/{unregistered_crn}/withdraw/{id}').status_code == 400
 
     # Withdraw from a course we are register for
-    assert client.get(f'/course/{crn}/register/{id}').status_code == 200
     assert client.get(f'/course/{crn}/withdraw/{id}').status_code == 200
 
     with app.app_context():
-        course = db.session.get_one(Course, 1)
-        student = db.session.get_one(Student, 1)
-        assert course is not None
-        assert student is not None
+        course = db.session.get_one(Course, crn)
+        student = db.session.get_one(Student, id)
         assert len(course.students) == 0
-        assert len(student.courses) == 1
+        assert len(student.courses) == 0
 
 def test_update_grade(client, app):
     grade = 98

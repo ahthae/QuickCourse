@@ -33,7 +33,7 @@ def app():
         student = Student(
             id=1,
             username='test',
-            passhash='testtest',
+            passhash=hash_password('testtest'),
             name='test test'
         )
         teacher = Student(
