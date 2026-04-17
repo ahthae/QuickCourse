@@ -10,8 +10,8 @@ db = SQLAlchemy()
 class StudentCourseAssociation(db.Model):
     id: Mapped[int] = mapped_column(ForeignKey('student.id'), primary_key=True)
     crn: Mapped[int] = mapped_column(ForeignKey('course.crn'), primary_key=True)
-    student: Mapped[Student] = db.relationship(back_populates='course_associations')
-    course: Mapped[Course] = db.relationship(back_populates='student_associations')
+    student: Mapped['Student'] = db.relationship(back_populates='course_associations')
+    course: Mapped['Course'] = db.relationship(back_populates='student_associations')
     grade: Mapped[float] = mapped_column(default=0)
 
 class Student(db.Model):
@@ -24,7 +24,7 @@ class Student(db.Model):
         back_populates='student',
         cascade='all, delete-orphan'
         )
-    courses: AssociationProxy[List[Course]] = association_proxy(
+    courses: AssociationProxy[List['Course']] = association_proxy(
         'course_associations',
         'course',
         creator=lambda course_obj: StudentCourseAssociation(course=course_obj)
