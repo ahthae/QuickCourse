@@ -35,6 +35,7 @@ class Student(db.Model):
             'id': self.id,
             'name': self.name,
             'username': self.username,
+            'role': self.role,
             'courses': [{'crn': a.course.crn, 'grade': a.grade} for a in self.course_associations]
         }
 
