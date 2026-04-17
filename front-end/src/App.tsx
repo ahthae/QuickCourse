@@ -1,7 +1,9 @@
-import { use, useState } from 'react'
+import { use, useState, useRef } from 'react'
 import { BrowserRouter as Router, Routes, Route, useNavigate, useNavigation } from 'react-router-dom'
 import logo from './assets/quickcourselogo.png'
 import './App.css'
+
+import TeacherDashboard from './TeacherDashboard'
 
 const base_url = "http://localhost:5000";
 
@@ -23,7 +25,16 @@ function LoginPage() {
   
       if (response.ok) {
         console.log("Logged in:", data);
-        navigate('/dashboard')
+
+        const student = await (await fetch(base_url+ '/student/'+username)).json();
+        localStorage.setItem('user', JSON.stringify(student));
+        console.log(student)
+
+        if (student.role == 1) {
+          navigate('/teacherdashboard');
+        } else {
+          navigate('/studentdashboard');
+        }
       } else {
         console.log("Error:", data);
       }
@@ -66,6 +77,11 @@ function LoginPage() {
       <button onClick={() => navigate('/studentdashboard')}>
         Goes to Dashboard. You will access this via sign in when thats functional
       </button>
+      <div className="ticks"></div>
+      <button onClick={() => navigate('/teacherdashboard')}>
+        Goes to Dashboard. You will access this via sign in when thats functional
+      </button>
+
 
       <div className="ticks"></div>
       <section id="spacer"></section>
@@ -128,19 +144,6 @@ function StudentAddCourses() {
   )
 }
 
-function TeacherDashboard() {
-  const navigate = useNavigate()
-  return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>Your Courses</h1>
-      <p></p>
-      <button onClick={() => navigate('/')}>
-        Sign Out. Takes you back to Login
-      </button>
-    </div>
-  )
-}
-
 function AdminDashboard() {
   const navigate = useNavigate()
   return (
@@ -161,7 +164,7 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/studentdashboard" element={<StudentDashboard />} />
         <Route path="/studentaddcourses" element={<StudentAddCourses />} />
-        <Route path="/teacherdashboard" element={<TeacherDashboard />} />
+        <Route path="/teacherdashboard" element={<TeacherDashboard baseUrl={base_url} />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
       </Routes>
     </Router>
