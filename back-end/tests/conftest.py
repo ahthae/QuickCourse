@@ -3,6 +3,7 @@ import tempfile
 
 from quickcourse import create_app
 from quickcourse.models import Course, db, Student
+from quickcourse.auth import hash_password
 
 @pytest.fixture()
 def app():
@@ -14,20 +15,19 @@ def app():
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///{tmp_path}.sqlite',
         'SQLALCHEMY_RECORD_QUERIES': True,
         'TESTING': True,
-        'JWT_TOKEN_LOCATION': ['cookies']
+        'JWT_TOKEN_LOCATION': ['cookies'],
+        'JWT_COOKIE_CSRF_PROTECT': False
         })
 
     with app.app_context():
         course = Course(
             crn=1,
             name='Test 101',
-            instructor='Test, Test',
             capacity=80
         )
         course2 = Course(
             crn=2,
             name='Test 202',
-            instructor='Test2, Test2',
             capacity=35
         )
         student = Student(
@@ -36,10 +36,22 @@ def app():
             passhash='testtest',
             name='test test'
         )
+        teacher = Student(
+            id=99,
+            role=1,
+            username='teach',
+            passhash=hash_password('teachteach'),
+            name='test teach'
+        )
         student.courses.append(course2)
+        course.instructor = teacher
+        course.instructor_id = teacher.id
+        course2.instructor = teacher 
+        course2.instructor_id = teacher.id
         db.session.add(course)
         db.session.add(course2)
         db.session.add(student)
+        db.session.add(teacher)
 
         db.session.commit()
 

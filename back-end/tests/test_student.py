@@ -18,7 +18,7 @@ def test_student_get_all(client, app):
     assert response.status_code == 200
  
     students = response.json
-    assert len(students) == 2
+    assert len(students) > 1
 
 def test_student_get(client, app):
     id = 1

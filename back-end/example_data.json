@@ -1,0 +1,103 @@
+{
+    "courses": [
+        {
+            "name": "Math 101",
+            "instructor": "Ralph Jenkins",
+            "time": "",
+            "capacity": 8,
+            "students": [
+                {"id": 1, "grade": 92},
+                {"id": 2, "grade": 65},
+                {"id": 3, "grade": 86},
+                {"id": 4, "grade": 77}
+            ]
+        },
+        {
+            "name": "Physics 121",
+            "instructor": "Susan Walker",
+            "time": "",
+            "capacity": 10,
+            "students": [
+                {"id": 5, "grade": 53},
+                {"id": 4, "grade": 85},
+                {"id": 6, "grade": 94},
+                {"id": 3, "grade": 91},
+                {"id": 2, "grade": 88}
+            ]
+        },
+        {
+            "name": "CS 106",
+            "instructor": "Ammon Hepworth",
+            "time": "",
+            "capacity": 10,
+            "students": [
+                {"id": 7, "grade": 93},
+                {"id": 8, "grade": 85},
+                {"id": 5, "grade": 57},
+                {"id": 6, "grade": 68}
+            ]
+        },
+        {
+            "name": "CS 162",
+            "instructor": "Ammon Hepworth",
+            "time": "",
+            "capacity": 4,
+            "students": [
+                {"id": 7, "grade": 99},
+                {"id": 5, "grade": 87},
+                {"id": 8, "grade": 92},
+                {"id": 3, "grade": 67}
+            ]
+        }
+    ],
+    "students": [
+        {
+            "id": 1,
+            "name": "Jose Santos",
+            "username": "jsantos",
+            "password": "santosjose"
+        },
+        {
+            "id": 2,
+            "name": "Betty Brown",
+            "username": "bbrown",
+            "password": "brownbetty"
+        },
+        {
+            "id": 3,
+            "name": "John Stuart",
+            "username": "jstuart",
+            "password": "stuartjohn"
+        },
+        {
+            "id": 4,
+            "name": "Li Cheng",
+            "username": "lcheng",
+            "password": "chengli"
+        },
+        {
+            "id": 5,
+            "name": "Nancy Little",
+            "username": "nlittle",
+            "password": "littlenancy"
+        },
+        {
+            "id": 6,
+            "name": "Mindy Norris",
+            "username": "mnorris",
+            "password": "norrismindy"
+        },
+        {
+            "id": 7,
+            "name": "Aditya Ranganath",
+            "username": "aranganath",
+            "password": "ranganathaditya"
+        },
+        {
+            "id": 8,
+            "name": "Yi Wen Chen",
+            "username": "ychen",
+            "password": "chenwenyi"
+        }
+    ]
+}

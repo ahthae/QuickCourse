@@ -1,4 +1,4 @@
-from typing import List 
+from typing import List, Optional
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Identity, Column, ForeignKey
@@ -19,6 +19,7 @@ class Student(db.Model):
     name: Mapped[str] = mapped_column()
     username: Mapped[str] = mapped_column(unique=True)
     passhash: Mapped[str]
+    role: Mapped[int] = mapped_column(default=0) # 0=student, 1=teacher, 2=admin
     course_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(
         back_populates='student',
         cascade='all, delete-orphan'
@@ -39,9 +40,10 @@ class Student(db.Model):
 
 class Course(db.Model):
     crn: Mapped[int] = mapped_column(Identity(), primary_key=True)
-    name: Mapped[str] = mapped_column()
-    instructor: Mapped[str] = mapped_column()
-    # TODO time
+    name: Mapped[str]
+    instructor_id: Mapped[Optional[int]] = mapped_column(ForeignKey(Student.id))
+    instructor: Mapped[Optional[Student]] = db.relationship()
+    times: Mapped[Optional[str]]
     capacity: Mapped[int] = mapped_column()
     student_associations: Mapped[List[StudentCourseAssociation]] = db.relationship(
         back_populates='course',
@@ -57,7 +59,8 @@ class Course(db.Model):
         return {
             'crn': self.crn,
             'name': self.name,
-            'instructor': self.instructor,
+            'instructor': self.instructor.name,
+            'instructor_id': self.instructor_id,
             'capacity': self.capacity,
             'students': [{'id': a.student.id, 'grade': a.grade} for a in self.student_associations]
         }

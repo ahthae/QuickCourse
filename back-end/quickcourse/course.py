@@ -1,14 +1,19 @@
 import json
 from flask import Blueprint, jsonify, make_response, request, url_for
+from flask_jwt_extended import current_user, jwt_required
 
 from quickcourse.models import Course, db, Student, StudentCourseAssociation
 
 bp = Blueprint('course', __name__, url_prefix='/course')
 
 @bp.route('/<int:crn>/register/<int:id>', methods=['GET', 'POST', 'PUT'])
+
 def register(crn, id):
     course = db.get_or_404(Course, crn, description=f'Course with CRN {crn} not found.')
     student = db.get_or_404(Student, id, description=f'Student with ID {id} not found.')
+
+    if (len(course.students) >= course.capacity):
+        return jsonify({'message': 'Failed to register: course at capacity.'}), 400
 
     course.students.append(student)
     db.session.commit()
@@ -31,7 +36,10 @@ def withdraw(crn, id):
     return jsonify({f'message':'Successfully withdrawn from {crn}.'}), 200
 
 @bp.route('/<int:crn>/<int:id>', methods=['GET', 'POST'])
+@jwt_required()
 def update_grade(crn, id):
+    if (current_user.role == 0): return make_response(), 403
+    
     association = db.get_or_404(StudentCourseAssociation, {'id': id, 'crn': crn}, description='Grade record for student {id} in course {crn} not found.')
     
     if (request.method == 'POST'):
@@ -42,11 +50,6 @@ def update_grade(crn, id):
 
     return jsonify({'grade': association.grade})
 
-@bp.get('/')
-def course_get():
-    courses = db.session.scalars(db.select(Course)).all()
-    return jsonify([course.to_dict() for course in courses])
-
 @bp.put('/')
 def course_put():
     data = request.get_json()
@@ -55,12 +58,18 @@ def course_put():
         course = Course(
             crn=data['crn'],
             name=data['name'],
-            instructor=data['instructor'],
             capacity=data['capacity']
         )
     except KeyError:
         return jsonify({'message':'Missing required data.'}), 400
 
+    if 'instructor_id' in data:
+        instructor = db.session.get(Student, data['instructor_id'])
+        if not instructor:
+            return jsonify({'message':f'Could not find instructor {data['instructor_id']}.'}), 400
+        course.instructor = instructor
+        course.instructor_id = instructor.id
+            
     if 'students' in data:
         for grade in data['students']:
             student = db.session.get(Student, grade['id'])
@@ -80,8 +89,22 @@ def course_put():
 
     return jsonify(course.to_dict()), 201, { 'Location': url_for('course.course', crn=course.crn) }
 
+@bp.get('/')
+@jwt_required(optional=True)
+def course_get():
+    courses = db.session.scalars(db.select(Course)).all()
+    data = [course.to_dict() for course in courses]
+    if not current_user or current_user.role < 1:
+        if 'students' in data: del data['students']
+        if 'instructor' in data: del data['instructor_id']
+    return jsonify(data)
+
 @bp.route('/<int:crn>', methods=['GET', 'POST', 'DELETE'])
+@jwt_required(optional=True)
 def course(crn):
+    if request.method != 'GET' and (not current_user or current_user.role < 1):
+        return jsonify({'message': 'Unauthorized method'}), 403
+
     message_404 = f'Course with CRN {crn} not found.'
     course = db.get_or_404(Course, crn, description=message_404)
 
@@ -100,4 +123,8 @@ def course(crn):
 
         db.session.commit()
 
-    return course.to_dict()
+    data = course.to_dict()
+    if not current_user or current_user.role < 1:
+        if 'students' in data: del data['students']
+        if 'instructor' in data: del data['instructor_id']
+    return data
