@@ -2,16 +2,27 @@ import { useState } from 'react'
 import logo from './assets/quickcourselogo.png'
 import './App.css'
 
+const base_url = "http://localhost:5000";
+
 function App() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     console.log("Username:", username)
     console.log("Password:", password)
 
-    // connect to back-end later
+    const response = await fetch(base_url+'/login', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({"username": username, "password": password})
+    });
+
+    if (response.ok) {
+      console.log("logged in as " + username);
+    }
   }
+
   return (
     <>
       <section id="center">
